@@ -1,4 +1,4 @@
-from api.agents.retireval_generation import rag_pipline
+from api.agents.retireval_generation import rag_pipeline
 from qdrant_client import QdrantClient
 from langsmith import Client
 from openai import AsyncOpenAI

@@ -1,10 +1,10 @@
 import logging
 from fastapi import APIRouter, Request
 
-from api.api.models import RAGRequest, RAGResponse
+from api.api.models import RAGRequest, RAGResponse, RAGUsedContext
 from qdrant_client import QdrantClient
 
-from api.agents.retireval_generation import rag_pipline
+from api.agents.retireval_generation import rag_pipeline_wraper
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,8 +21,11 @@ def chat(
     request: Request,
     payload: RAGRequest
 ) -> RAGResponse:
-    result = rag_pipline(payload.query, qdrant_client)
-    return RAGResponse(answer=result["answer"], products=result["products"])
+    result = rag_pipeline_wraper(payload.query)
+    return RAGResponse(
+        answer=result["answer"],
+        used_context=[RAGUsedContext(**item) for item in result["used_context"]]
+    )
 
 
 api_router = APIRouter()

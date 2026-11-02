@@ -16,8 +16,11 @@ def render_products(products):
                 if product.get("image_url"):
                     st.image(product["image_url"], width=160)
             with details_column:
-                st.markdown(f"**{product.get('title') or 'Product'}**")
-                st.caption(f"ASIN: {product.get('parent_asin', 'Unknown')}")
+                st.markdown(f"**{product.get('title') or product.get('description') or 'Product'}**")
+                st.caption(f"ASIN: {product.get('parent_asin') or product.get('id') or 'Unknown'}")
+                price = product.get("price")
+                if price is not None:
+                    st.write(f"Price: ${price:.2f}")
                 rating = product.get("rating")
                 if rating is not None:
                     st.write(f"Rating: {rating:.1f}/5")
@@ -61,7 +64,7 @@ if prompt := st.chat_input("Ask about a product"):
             try:
                 response_data = response.json()
                 answer = response_data["answer"]
-                products = response_data.get("products", [])
+                products = response_data.get("used_context") or response_data.get("products", [])
             except (KeyError, TypeError, ValueError) as exc:
                 st.error(f"The API returned an invalid response: {exc}")
             else:
