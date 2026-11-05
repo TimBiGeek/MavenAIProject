@@ -1,10 +1,13 @@
 import openai
 import cohere
+from pathlib import Path
 from qdrant_client import QdrantClient
 from langsmith import traceable, get_current_run_tree
 import instructor
 from pydantic import BaseModel, Field
 from qdrant_client.models import Filter, FieldCondition, MatchValue, Prefetch, Document, models
+
+from api.agents.utils.prompt_managment import prompt_template_config
 
 class RAGUsedContext(BaseModel):
     id: str = Field(description="ID of the item used to answer the question")
@@ -158,21 +161,12 @@ def process_context(context):
     run_type="prompt"
 )
 def build_prompt(preprocessed_context, query):
-    prompt = f"""
-You are a shopping assistant that can answer question about the products in stock.
-You will be given a question and a list of context.
-Instruction:
- - Answer the question based on the context provided
- - Never use word context and refer to it as the available products
- - Do not use markdown formatting.
-
- Context:
-{preprocessed_context}
-Question:
-{query}
-
- """
-    return prompt
+    prompt_path = Path(__file__).parent / "prompts" / "retrieval_generation.yaml"
+    template = prompt_template_config(prompt_path, "retrieval_generation")
+    return template.render(
+        preprocessed_context=preprocessed_context,
+        question=query,
+    )
 
 @traceable(
     run_type="llm",
